@@ -1,0 +1,9 @@
+[
+  { "tripId": "RAIL-CAS-RAB-0730", "origin": "Casablanca", "destination": "Rabat",     "departure": "2026-11-15T07:30:00", "arrival": "2026-11-15T08:25:00", "priceMinor": 8000,  "seatsAvailable": 120 },
+  { "tripId": "RAIL-CAS-RAB-0900", "origin": "Casablanca", "destination": "Rabat",     "departure": "2026-11-15T09:00:00", "arrival": "2026-11-15T09:55:00", "priceMinor": 8000,  "seatsAvailable": 120 },
+  { "tripId": "RAIL-CAS-MAR-0800", "origin": "Casablanca", "destination": "Marrakech", "departure": "2026-11-15T08:00:00", "arrival": "2026-11-15T11:10:00", "priceMinor": 15000, "seatsAvailable": 90  },
+  { "tripId": "RAIL-RAB-TAN-1000", "origin": "Rabat",      "destination": "Tanger",    "departure": "2026-11-15T10:00:00", "arrival": "2026-11-15T11:50:00", "priceMinor": 13500, "seatsAvailable": 80  },
+  { "tripId": "RAIL-CAS-FES-0815", "origin": "Casablanca", "destination": "Fès",       "departure": "2026-11-15T08:15:00", "arrival": "2026-11-15T11:40:00", "priceMinor": 16000, "seatsAvailable": 75  },
+  { "tripId": "RAIL-RAB-CAS-1800", "origin": "Rabat",      "destination": "Casablanca","departure": "2026-11-15T18:00:00", "arrival": "2026-11-15T18:55:00", "priceMinor": 8000,  "seatsAvailable": 110 },
+  { "tripId": "RAIL-CAS-RAB-0730-16", "origin": "Casablanca", "destination": "Rabat",  "departure": "2026-11-16T07:30:00", "arrival": "2026-11-16T08:25:00", "priceMinor": 8000,  "seatsAvailable": 120 }
+]

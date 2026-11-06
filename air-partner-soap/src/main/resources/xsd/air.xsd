@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Partenaire aérien — contrat SOAP (schéma XSD).
+  Projet : Plateforme de mobilité multimodale (starter kit).
+
+  CE CONTRAT FAIT FOI. Il ne doit PAS être modifié par les étudiants.
+  Spring WS génère le WSDL automatiquement à partir de ce schéma,
+  exposé à l'exécution sur : http://localhost:8081/ws/air.wsdl
+
+  Cycle miroir du ferroviaire : searchFlights -> holdFlight -> confirmFlight / cancelFlight
+
+  Encadrement : Pr. Mahmoud NASSAR
+-->
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+            xmlns:tns="http://mobility.ma/air"
+            targetNamespace="http://mobility.ma/air"
+            elementFormDefault="qualified">
+
+  <!-- ============ Type métier ============ -->
+  <xsd:complexType name="Flight">
+    <xsd:sequence>
+      <xsd:element name="flightId"       type="xsd:string"/>
+      <xsd:element name="origin"         type="xsd:string"/>   <!-- ville, ex: "Casablanca" -->
+      <xsd:element name="destination"    type="xsd:string"/>   <!-- ville, ex: "Paris"      -->
+      <xsd:element name="departure"      type="xsd:string"/>   <!-- ISO-8601               -->
+      <xsd:element name="arrival"        type="xsd:string"/>   <!-- ISO-8601               -->
+      <xsd:element name="priceMinor"     type="xsd:long"/>     <!-- centimes de MAD         -->
+      <xsd:element name="seatsAvailable" type="xsd:int"/>
+    </xsd:sequence>
+  </xsd:complexType>
+
+  <!-- ============ searchFlights ============ -->
+  <xsd:element name="searchFlightsRequest">
+    <xsd:complexType>
+      <xsd:sequence>
+        <xsd:element name="origin"      type="xsd:string"/>
+        <xsd:element name="destination" type="xsd:string"/>
+        <xsd:element name="date"        type="xsd:string"/>  <!-- "AAAA-MM-JJ" -->
+      </xsd:sequence>
+    </xsd:complexType>
+  </xsd:element>
+  <xsd:element name="searchFlightsResponse">
+    <xsd:complexType>
+      <xsd:sequence>
+        <xsd:element name="flight" type="tns:Flight" minOccurs="0" maxOccurs="unbounded"/>
+      </xsd:sequence>
+    </xsd:complexType>
+  </xsd:element>
+
+  <!-- ============ holdFlight ============ -->
+  <xsd:element name="holdFlightRequest">
+    <xsd:complexType>
+      <xsd:sequence>
+        <xsd:element name="flightId" type="xsd:string"/>
+        <xsd:element name="seats"    type="xsd:int"/>
+      </xsd:sequence>
+    </xsd:complexType>
+  </xsd:element>
+  <xsd:element name="holdFlightResponse">
+    <xsd:complexType>
+      <xsd:sequence>
+        <xsd:element name="holdId" type="xsd:string"/>
+      </xsd:sequence>
+    </xsd:complexType>
+  </xsd:element>
+
+  <!-- ============ confirmFlight ============ -->
+  <xsd:element name="confirmFlightRequest">
+    <xsd:complexType>
+      <xsd:sequence>
+        <xsd:element name="holdId" type="xsd:string"/>
+      </xsd:sequence>
+    </xsd:complexType>
+  </xsd:element>
+  <xsd:element name="confirmFlightResponse">
+    <xsd:complexType>
+      <xsd:sequence>
+        <xsd:element name="bookingRef" type="xsd:string"/>
+      </xsd:sequence>
+    </xsd:complexType>
+  </xsd:element>
+
+  <!-- ============ cancelFlight (compensation, idempotente) ============ -->
+  <xsd:element name="cancelFlightRequest">
+    <xsd:complexType>
+      <xsd:sequence>
+        <!-- accepte un holdId ou un bookingRef -->
+        <xsd:element name="reference" type="xsd:string"/>
+      </xsd:sequence>
+    </xsd:complexType>
+  </xsd:element>
+  <xsd:element name="cancelFlightResponse">
+    <xsd:complexType>
+      <xsd:sequence>
+        <xsd:element name="status" type="xsd:string"/>
+      </xsd:sequence>
+    </xsd:complexType>
+  </xsd:element>
+
+</xsd:schema>

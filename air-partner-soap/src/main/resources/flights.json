@@ -1,0 +1,8 @@
+[
+  { "flightId": "AIR-RBA-ORY-1200", "origin": "Rabat",      "destination": "Paris",  "departure": "2026-11-15T12:00:00", "arrival": "2026-11-15T15:10:00", "priceMinor": 180000, "seatsAvailable": 40 },
+  { "flightId": "AIR-CMN-ORY-1330", "origin": "Casablanca", "destination": "Paris",  "departure": "2026-11-15T13:30:00", "arrival": "2026-11-15T16:45:00", "priceMinor": 160000, "seatsAvailable": 60 },
+  { "flightId": "AIR-CMN-DSS-1500", "origin": "Casablanca", "destination": "Dakar",  "departure": "2026-11-15T15:00:00", "arrival": "2026-11-15T18:00:00", "priceMinor": 220000, "seatsAvailable": 50 },
+  { "flightId": "AIR-RAK-CMN-0930", "origin": "Marrakech",  "destination": "Casablanca","departure": "2026-11-15T09:30:00","arrival": "2026-11-15T10:25:00", "priceMinor": 60000,  "seatsAvailable": 70 },
+  { "flightId": "AIR-CMN-MAD-1800", "origin": "Casablanca", "destination": "Madrid", "departure": "2026-11-15T18:00:00", "arrival": "2026-11-15T20:40:00", "priceMinor": 140000, "seatsAvailable": 3  },
+  { "flightId": "AIR-TNG-CMN-0700", "origin": "Tanger",     "destination": "Casablanca","departure": "2026-11-15T07:00:00","arrival": "2026-11-15T08:05:00", "priceMinor": 55000,  "seatsAvailable": 65 }
+]

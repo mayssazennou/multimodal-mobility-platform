@@ -1,0 +1,39 @@
+# =====================================================================
+#  Starter kit — Plateforme de mobilité multimodale
+#  Démarre les DEUX systèmes partenaires "legacy" (fournis, non modifiables).
+#  Les étudiants ajoutent LEURS services (microservices, bridges, BFF…)
+#  sur le même réseau "mobilite-net".
+#
+#  Lancement :  docker compose up --build
+#
+#  Encadrement : Pr. Mahmoud NASSAR
+# =====================================================================
+services:
+
+  # --- Opérateur ferroviaire : serveur CORBA (JacORB) ---
+  rail:
+    build: ./rail-operator-corba
+    image: mobilite/rail-operator-corba:1.0.0
+    container_name: rail-operator-corba
+    environment:
+      # Hôte annoncé dans l'IOR. Pour un bridge tournant DANS ce réseau,
+      # laisser "rail". Pour un bridge tournant sur l'hôte, mettre "localhost".
+      CORBA_ADVERTISED_HOST: rail
+      CORBA_PORT: "1050"
+      IOR_FILE: /ior/RailBooking.ior
+    ports:
+      - "1050:1050"          # IIOP, publié sur l'hôte
+    volumes:
+      - ./ior:/ior           # le fichier IOR apparaît côté hôte dans ./ior/
+
+  # --- Partenaire aérien : service SOAP (Spring WS) ---
+  air:
+    build: ./air-partner-soap
+    image: mobilite/air-partner-soap:1.0.0
+    container_name: air-partner-soap
+    ports:
+      - "8081:8080"          # WSDL: http://localhost:8081/ws/air.wsdl
+
+networks:
+  default:
+    name: mobilite-net

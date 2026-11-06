@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Partenaire aérien — service SOAP (Spring Boot 3 + Spring Web Services).
+  FOURNI dans le starter kit. Ne pas modifier.
+
+  Le build génère les classes JAXB à partir de xsd/air.xsd
+  (dans le package ma.mobility.air.ws) puis produit un jar exécutable Boot.
+
+  Encadrement : Pr. Mahmoud NASSAR
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-parent</artifactId>
+    <version>3.2.5</version>
+    <relativePath/>
+  </parent>
+
+  <groupId>ma.mobility</groupId>
+  <artifactId>air-partner-soap</artifactId>
+  <version>1.0.0</version>
+  <packaging>jar</packaging>
+
+  <properties>
+    <java.version>17</java.version>
+    <jaxb.package>ma.mobility.air.ws</jaxb.package>
+  </properties>
+
+  <dependencies>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-web-services</artifactId>
+    </dependency>
+
+    <!-- WSDL généré dynamiquement par Spring WS -->
+    <dependency>
+      <groupId>wsdl4j</groupId>
+      <artifactId>wsdl4j</artifactId>
+    </dependency>
+
+    <!-- Runtime JAXB (jakarta) pour (dé)sérialiser les classes générées -->
+    <dependency>
+      <groupId>org.glassfish.jaxb</groupId>
+      <artifactId>jaxb-runtime</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-test</artifactId>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <finalName>air-partner-soap-${project.version}</finalName>
+    <plugins>
+
+      <!-- Génération des classes JAXB à partir du XSD -->
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>jaxb2-maven-plugin</artifactId>
+        <version>3.1.0</version>
+        <executions>
+          <execution>
+            <id>xjc-air</id>
+            <phase>generate-sources</phase>
+            <goals><goal>xjc</goal></goals>
+          </execution>
+        </executions>
+        <configuration>
+          <sources>
+            <source>src/main/resources/xsd/air.xsd</source>
+          </sources>
+          <packageName>${jaxb.package}</packageName>
+          <clearOutputDir>false</clearOutputDir>
+        </configuration>
+      </plugin>
+
+      <!-- Jar exécutable Spring Boot -->
+      <plugin>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-maven-plugin</artifactId>
+      </plugin>
+
+    </plugins>
+  </build>
+</project>

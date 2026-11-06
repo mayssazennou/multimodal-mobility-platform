@@ -1,0 +1,156 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Opérateur ferroviaire — serveur CORBA (JacORB).
+  FOURNI dans le starter kit. Ne pas modifier.
+
+  Le build :
+    1. compile l'IDL (src/main/idl/rail.idl) via le compilateur JacORB,
+       dans target/generated-sources/idl  (phase generate-sources) ;
+    2. ajoute ce dossier aux sources (build-helper) ;
+    3. compile le tout et produit un jar exécutable autonome
+       (…-jar-with-dependencies.jar) dont le Main est RailServer.
+
+  Encadrement : Pr. Mahmoud NASSAR
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <groupId>ma.mobility</groupId>
+  <artifactId>rail-operator-corba</artifactId>
+  <version>1.0.0</version>
+  <packaging>jar</packaging>
+
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <!-- JacORB 3.9 est une bibliothèque Java 8 : le paquet javax.rmi.CORBA,
+         dont l'ORB a besoin à l'exécution, a été retiré du JDK à partir de
+         Java 11. On cible donc Java 8 pour CE service (l'aérien reste en 17). -->
+    <maven.compiler.source>1.8</maven.compiler.source>
+    <maven.compiler.target>1.8</maven.compiler.target>
+    <jacorb.version>3.9</jacorb.version>
+    <idl.out>${project.build.directory}/generated-sources/idl</idl.out>
+  </properties>
+
+  <dependencies>
+    <!-- ORB JacORB + API OMG (fournit org.omg.* retiré du JDK depuis Java 11) -->
+    <dependency>
+      <groupId>org.jacorb</groupId>
+      <artifactId>jacorb</artifactId>
+      <version>${jacorb.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.jacorb</groupId>
+      <artifactId>jacorb-omgapi</artifactId>
+      <version>${jacorb.version}</version>
+    </dependency>
+    <!-- Compilateur IDL JacORB : utilisé seulement au build (scope provided).
+         Sa classe principale est org.jacorb.idl.parser (générée par java_cup),
+         et NON org.jacorb.idl.Main qui n'existe pas. -->
+    <dependency>
+      <groupId>org.jacorb</groupId>
+      <artifactId>jacorb-idl-compiler</artifactId>
+      <version>${jacorb.version}</version>
+      <scope>provided</scope>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <finalName>rail-operator-corba-${project.version}</finalName>
+    <plugins>
+
+      <!-- 0. Création du dossier de sortie des sources générées -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-antrun-plugin</artifactId>
+        <version>3.1.0</version>
+        <executions>
+          <execution>
+            <id>mkdir-idl-out</id>
+            <phase>generate-sources</phase>
+            <goals><goal>run</goal></goals>
+            <configuration>
+              <target><mkdir dir="${idl.out}"/></target>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
+      <!-- 1. Génération des stubs/skeletons à partir de l'IDL.
+           Exécuté dans un PROCESSUS SÉPARÉ (exec:exec) : le compilateur IDL
+           de JacORB (org.jacorb.idl.parser) appelle System.exit() en fin de
+           traitement, ce qui tuerait la JVM Maven avec exec:java. Le classpath
+           (<classpath/>) reprend les dépendances du projet, dont le compilateur
+           provided et sa dépendance java_cup. -->
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>exec-maven-plugin</artifactId>
+        <version>3.1.0</version>
+        <executions>
+          <execution>
+            <id>idl-compile</id>
+            <phase>generate-sources</phase>
+            <goals><goal>exec</goal></goals>
+            <configuration>
+              <executable>java</executable>
+              <classpathScope>compile</classpathScope>
+              <arguments>
+                <argument>-classpath</argument>
+                <classpath/>
+                <argument>org.jacorb.idl.parser</argument>
+                <argument>-d</argument>
+                <argument>${idl.out}</argument>
+                <argument>-I${project.basedir}/src/main/idl</argument>
+                <argument>${project.basedir}/src/main/idl/rail.idl</argument>
+              </arguments>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
+      <!-- 2. Déclaration du dossier généré comme racine de sources -->
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>build-helper-maven-plugin</artifactId>
+        <version>3.6.0</version>
+        <executions>
+          <execution>
+            <id>add-idl-sources</id>
+            <phase>generate-sources</phase>
+            <goals><goal>add-source</goal></goals>
+            <configuration>
+              <sources><source>${idl.out}</source></sources>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
+      <!-- 3. Jar exécutable autonome (toutes dépendances incluses) -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-assembly-plugin</artifactId>
+        <version>3.7.1</version>
+        <configuration>
+          <descriptorRefs>
+            <descriptorRef>jar-with-dependencies</descriptorRef>
+          </descriptorRefs>
+          <archive>
+            <manifest>
+              <mainClass>mobility.rail.server.RailServer</mainClass>
+            </manifest>
+          </archive>
+          <appendAssemblyId>true</appendAssemblyId>
+        </configuration>
+        <executions>
+          <execution>
+            <id>make-fatjar</id>
+            <phase>package</phase>
+            <goals><goal>single</goal></goals>
+          </execution>
+        </executions>
+      </plugin>
+
+    </plugins>
+  </build>
+</project>

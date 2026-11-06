@@ -1,0 +1,14 @@
+# Build
+target/
+*.class
+
+# IOR publié au runtime (regénéré à chaque démarrage)
+ior/*.ior
+
+# IDE
+.idea/
+*.iml
+.vscode/
+.settings/
+.project
+.classpath
