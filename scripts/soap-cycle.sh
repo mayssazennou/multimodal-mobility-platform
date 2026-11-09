@@ -1,3 +1,6 @@
+#!/usr/bin/env bash
+set -u
+
 URL=http://localhost:8081/ws
 BODY=/tmp/soap-last.xml
 
@@ -15,30 +18,42 @@ soap() {
 # extrait le texte d'une balise de la dernière réponse
 val() { xmllint --xpath "string(//*[local-name()='$1'])" "$BODY"; }
 
-SEARCH="<air:searchFlightsRequest><air:origin>Casablanca</air:origin><air:destination>Paris</air:destination><air:date>2026-11-15</air:date></air:searchFlightsRequest>"
+hold()    { soap "<air:holdFlightRequest><air:flightId>$1</air:flightId><air:seats>$2</air:seats></air:holdFlightRequest>"; }
+confirm() { soap "<air:confirmFlightRequest><air:holdId>$1</air:holdId></air:confirmFlightRequest>"; }
+cancel()  { soap "<air:cancelFlightRequest><air:reference>$1</air:reference></air:cancelFlightRequest>"; }
+
+echo "==== CAS NOMINAL ===="
 
 echo "== search =="
+SEARCH="<air:searchFlightsRequest><air:origin>Casablanca</air:origin><air:destination>Paris</air:destination><air:date>2026-11-15</air:date></air:searchFlightsRequest>"
 soap "$SEARCH"
 
 echo "== hold =="
-FLIGHT_ID=AIR-CMN-ORY-1330
-SEATS=2
-soap "<air:holdFlightRequest><air:flightId>$FLIGHT_ID</air:flightId><air:seats>$SEATS</air:seats></air:holdFlightRequest>"
+hold AIR-CMN-ORY-1330 2
 HOLD_ID=$(val holdId)
 
 echo "== search (58 attendu) =="
 soap "$SEARCH"
 
 echo "== confirm =="
-soap "<air:confirmFlightRequest><air:holdId>$HOLD_ID</air:holdId></air:confirmFlightRequest>"
+confirm "$HOLD_ID"
 REF=$(val bookingRef)
 
 echo "== cancel =="
-soap "<air:cancelFlightRequest><air:reference>$REF</air:reference></air:cancelFlightRequest>"
+cancel "$REF"
 
 echo "== search (60 attendu) =="
 soap "$SEARCH"
 
 echo "== cancel rejoué x2 (test d'idempotence) =="
-soap "<air:cancelFlightRequest><air:reference>$REF</air:reference></air:cancelFlightRequest>"
-soap "<air:cancelFlightRequest><air:reference>$REF</air:reference></air:cancelFlightRequest>"
+cancel "$REF"
+cancel "$REF"
+
+
+echo "==== CAS D'ECHEC ===="
+
+echo "== hold (places insuffisantes) ==" 
+hold AIR-CMN-MAD-1800 4
+
+echo "== confirm avec un holdId inventé =="
+confirm xxx
