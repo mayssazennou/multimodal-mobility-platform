@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 set -u
+command -v xmllint >/dev/null || { echo "xmllint manquant : sudo apt install libxml2-utils"; exit 1; }
 
 URL=http://localhost:8081/ws
 BODY=/tmp/soap-last.xml
