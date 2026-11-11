@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<modelVersion>4.0.0</modelVersion>
+
+<groupId>ma.mobility.lot0</groupId>
+<artifactId>corba-client</artifactId>
+<version>0.1.0</version>
+
+<properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <maven.compiler.release>17</maven.compiler.release>
+    <jacorb.version>3.9</jacorb.version>
+    <idl.dir>${project.basedir}/../../rail-operator-corba/src/main/idl</idl.dir>
+    <idl.out>${project.build.directory}/generated-sources/idl</idl.out>
+</properties>
+
+<dependencies>
+    <dependency>
+    <groupId>org.jacorb</groupId><artifactId>jacorb</artifactId><version>${jacorb.version}</version>
+    </dependency>
+    <dependency>
+    <groupId>org.jacorb</groupId><artifactId>jacorb-omgapi</artifactId><version>${jacorb.version}</version>
+    </dependency>
+    <dependency>
+    <groupId>org.jacorb</groupId><artifactId>jacorb-idl-compiler</artifactId><version>${jacorb.version}</version>
+    <scope>provided</scope>
+    </dependency>
+</dependencies>
+
+<build>
+    <plugins>
+
+    <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>3.13.0</version>
+    </plugin>
+
+    <!-- 1. crée le dossier de sortie -->
+    <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-antrun-plugin</artifactId>
+        <version>3.1.0</version>
+        <executions>
+        <execution>
+            <id>mkdir-idl-out</id>
+            <phase>initialize</phase>
+            <goals><goal>run</goal></goals>
+            <configuration><target><mkdir dir="${idl.out}"/></target></configuration>
+        </execution>
+        </executions>
+    </plugin>
+
+    <!-- 2. compile l'IDL (processus séparé : le compilateur appelle System.exit) -->
+    <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>exec-maven-plugin</artifactId>
+        <version>3.1.0</version>
+        <executions>
+        <execution>
+            <id>idl-compile</id>
+            <phase>generate-sources</phase>
+            <goals><goal>exec</goal></goals>
+            <configuration>
+            <executable>java</executable>
+            <classpathScope>compile</classpathScope>
+            <arguments>
+                <argument>-classpath</argument>
+                <classpath/>
+                <argument>org.jacorb.idl.parser</argument>
+                <argument>-d</argument>
+                <argument>${idl.out}</argument>
+                <argument>-I${idl.dir}</argument>
+                <argument>${idl.dir}/rail.idl</argument>
+            </arguments>
+            </configuration>
+        </execution>
+        </executions>
+    </plugin>
+
+    <!-- 3. déclare le dossier généré comme sources Java -->
+    <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>build-helper-maven-plugin</artifactId>
+        <version>3.6.0</version>
+        <executions>
+        <execution>
+            <id>add-idl-sources</id>
+            <phase>generate-sources</phase>
+            <goals><goal>add-source</goal></goals>
+            <configuration><sources><source>${idl.out}</source></sources></configuration>
+        </execution>
+        </executions>
+    </plugin>
+    </plugins>
+</build>
+</project>
