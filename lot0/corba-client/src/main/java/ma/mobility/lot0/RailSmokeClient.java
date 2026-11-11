@@ -8,6 +8,7 @@ import org.omg.CORBA.ORB;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Properties;
+import java.nio.charset.StandardCharsets;
 
 public class RailSmokeClient {
 
@@ -22,7 +23,7 @@ public class RailSmokeClient {
         ORB orb = ORB.init(new String[0], props);
         try {
             // 2. Lire l'IOR et le transformer en objet distant
-            String ior = Files.readString(Paths.get(iorFile)).trim();
+            String ior = new String(Files.readAllBytes(Paths.get(iorFile)), StandardCharsets.UTF_8).trim();
             org.omg.CORBA.Object obj = orb.string_to_object(ior);
 
             // 3. narrow = cast vérifié vers l'interface RailBooking
