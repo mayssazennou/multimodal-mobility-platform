@@ -1,0 +1,6 @@
+services:
+  rail:
+    environment:
+      CORBA_ADVERTISED_HOST: localhost
+
+# docker compose -f docker-compose.yml -f lot0/docker-compose.host.yml up -d --force-recreate rail
