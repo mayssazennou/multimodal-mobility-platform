@@ -1,0 +1,190 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?><wsdl:definitions xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:sch="http://mobility.ma/air" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:tns="http://mobility.ma/air" targetNamespace="http://mobility.ma/air">
+  <wsdl:types>
+    <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified" targetNamespace="http://mobility.ma/air">
+
+  <!-- ============ Type métier ============ -->
+  <xsd:complexType name="Flight">
+    <xsd:sequence>
+      <xsd:element name="flightId" type="xsd:string"/>
+      <xsd:element name="origin" type="xsd:string"/>   <!-- ville, ex: "Casablanca" -->
+      <xsd:element name="destination" type="xsd:string"/>   <!-- ville, ex: "Paris"      -->
+      <xsd:element name="departure" type="xsd:string"/>   <!-- ISO-8601               -->
+      <xsd:element name="arrival" type="xsd:string"/>   <!-- ISO-8601               -->
+      <xsd:element name="priceMinor" type="xsd:long"/>     <!-- centimes de MAD         -->
+      <xsd:element name="seatsAvailable" type="xsd:int"/>
+    </xsd:sequence>
+  </xsd:complexType>
+
+  <!-- ============ searchFlights ============ -->
+  <xsd:element name="searchFlightsRequest">
+    <xsd:complexType>
+      <xsd:sequence>
+        <xsd:element name="origin" type="xsd:string"/>
+        <xsd:element name="destination" type="xsd:string"/>
+        <xsd:element name="date" type="xsd:string"/>  <!-- "AAAA-MM-JJ" -->
+      </xsd:sequence>
+    </xsd:complexType>
+  </xsd:element>
+  <xsd:element name="searchFlightsResponse">
+    <xsd:complexType>
+      <xsd:sequence>
+        <xsd:element maxOccurs="unbounded" minOccurs="0" name="flight" type="tns:Flight"/>
+      </xsd:sequence>
+    </xsd:complexType>
+  </xsd:element>
+
+  <!-- ============ holdFlight ============ -->
+  <xsd:element name="holdFlightRequest">
+    <xsd:complexType>
+      <xsd:sequence>
+        <xsd:element name="flightId" type="xsd:string"/>
+        <xsd:element name="seats" type="xsd:int"/>
+      </xsd:sequence>
+    </xsd:complexType>
+  </xsd:element>
+  <xsd:element name="holdFlightResponse">
+    <xsd:complexType>
+      <xsd:sequence>
+        <xsd:element name="holdId" type="xsd:string"/>
+      </xsd:sequence>
+    </xsd:complexType>
+  </xsd:element>
+
+  <!-- ============ confirmFlight ============ -->
+  <xsd:element name="confirmFlightRequest">
+    <xsd:complexType>
+      <xsd:sequence>
+        <xsd:element name="holdId" type="xsd:string"/>
+      </xsd:sequence>
+    </xsd:complexType>
+  </xsd:element>
+  <xsd:element name="confirmFlightResponse">
+    <xsd:complexType>
+      <xsd:sequence>
+        <xsd:element name="bookingRef" type="xsd:string"/>
+      </xsd:sequence>
+    </xsd:complexType>
+  </xsd:element>
+
+  <!-- ============ cancelFlight (compensation, idempotente) ============ -->
+  <xsd:element name="cancelFlightRequest">
+    <xsd:complexType>
+      <xsd:sequence>
+        <!-- accepte un holdId ou un bookingRef -->
+        <xsd:element name="reference" type="xsd:string"/>
+      </xsd:sequence>
+    </xsd:complexType>
+  </xsd:element>
+  <xsd:element name="cancelFlightResponse">
+    <xsd:complexType>
+      <xsd:sequence>
+        <xsd:element name="status" type="xsd:string"/>
+      </xsd:sequence>
+    </xsd:complexType>
+  </xsd:element>
+
+</xsd:schema>
+  </wsdl:types>
+  <wsdl:message name="cancelFlightRequest">
+    <wsdl:part element="tns:cancelFlightRequest" name="cancelFlightRequest">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="confirmFlightResponse">
+    <wsdl:part element="tns:confirmFlightResponse" name="confirmFlightResponse">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="searchFlightsResponse">
+    <wsdl:part element="tns:searchFlightsResponse" name="searchFlightsResponse">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="cancelFlightResponse">
+    <wsdl:part element="tns:cancelFlightResponse" name="cancelFlightResponse">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="searchFlightsRequest">
+    <wsdl:part element="tns:searchFlightsRequest" name="searchFlightsRequest">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="holdFlightRequest">
+    <wsdl:part element="tns:holdFlightRequest" name="holdFlightRequest">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="holdFlightResponse">
+    <wsdl:part element="tns:holdFlightResponse" name="holdFlightResponse">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="confirmFlightRequest">
+    <wsdl:part element="tns:confirmFlightRequest" name="confirmFlightRequest">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:portType name="AirPort">
+    <wsdl:operation name="cancelFlight">
+      <wsdl:input message="tns:cancelFlightRequest" name="cancelFlightRequest">
+    </wsdl:input>
+      <wsdl:output message="tns:cancelFlightResponse" name="cancelFlightResponse">
+    </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="confirmFlight">
+      <wsdl:input message="tns:confirmFlightRequest" name="confirmFlightRequest">
+    </wsdl:input>
+      <wsdl:output message="tns:confirmFlightResponse" name="confirmFlightResponse">
+    </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="searchFlights">
+      <wsdl:input message="tns:searchFlightsRequest" name="searchFlightsRequest">
+    </wsdl:input>
+      <wsdl:output message="tns:searchFlightsResponse" name="searchFlightsResponse">
+    </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="holdFlight">
+      <wsdl:input message="tns:holdFlightRequest" name="holdFlightRequest">
+    </wsdl:input>
+      <wsdl:output message="tns:holdFlightResponse" name="holdFlightResponse">
+    </wsdl:output>
+    </wsdl:operation>
+  </wsdl:portType>
+  <wsdl:binding name="AirPortSoap11" type="tns:AirPort">
+    <soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http"/>
+    <wsdl:operation name="cancelFlight">
+      <soap:operation soapAction=""/>
+      <wsdl:input name="cancelFlightRequest">
+        <soap:body use="literal"/>
+      </wsdl:input>
+      <wsdl:output name="cancelFlightResponse">
+        <soap:body use="literal"/>
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="confirmFlight">
+      <soap:operation soapAction=""/>
+      <wsdl:input name="confirmFlightRequest">
+        <soap:body use="literal"/>
+      </wsdl:input>
+      <wsdl:output name="confirmFlightResponse">
+        <soap:body use="literal"/>
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="searchFlights">
+      <soap:operation soapAction=""/>
+      <wsdl:input name="searchFlightsRequest">
+        <soap:body use="literal"/>
+      </wsdl:input>
+      <wsdl:output name="searchFlightsResponse">
+        <soap:body use="literal"/>
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="holdFlight">
+      <soap:operation soapAction=""/>
+      <wsdl:input name="holdFlightRequest">
+        <soap:body use="literal"/>
+      </wsdl:input>
+      <wsdl:output name="holdFlightResponse">
+        <soap:body use="literal"/>
+      </wsdl:output>
+    </wsdl:operation>
+  </wsdl:binding>
+  <wsdl:service name="AirPortService">
+    <wsdl:port binding="tns:AirPortSoap11" name="AirPortSoap11">
+      <soap:address location="http://localhost:8081/ws"/>
+    </wsdl:port>
+  </wsdl:service>
+</wsdl:definitions>
