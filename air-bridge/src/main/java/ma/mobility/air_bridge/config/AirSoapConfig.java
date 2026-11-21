@@ -15,7 +15,7 @@ public class AirSoapConfig {
     public Jaxb2Marshaller matshaller(){
         Jaxb2Marshaller m=new Jaxb2Marshaller();
         //Vous indiquez au marshaller où se trouvent les classes générées. Il y lit les annotations JAXB et sait quelle classe correspond à quel élément XML
-        m.setContextPath("ma.mobility.air-bridge.generated");
+        m.setContextPath("ma.mobility.airbridge.generated");
         return m;
     }
 
