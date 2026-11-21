@@ -31,14 +31,12 @@ public class AirController {
     public Hold hold(@RequestBody HoldRequest request,
                      @RequestHeader(value = "Idempotency-Key", required = false) String idempotencyKey) {
         // idempotencyKey : lue mais pas encore utilisée (étape suivante)
-        return airService.hold(request.offerId(), request.seats());
-    }
+        return airService.hold(request.offerId(), request.seats(), idempotencyKey);    }
 
     @PostMapping("/holds/{holdId}/confirm")
     public Booking confirm(@PathVariable String holdId,
                            @RequestHeader(value = "Idempotency-Key", required = false) String idempotencyKey) {
-        return airService.confirm(holdId);
-    }
+        return airService.confirm(holdId, idempotencyKey);    }
 
     @PostMapping("/cancellations")
     public ResponseEntity<Void> cancel(@RequestBody CancelRequest request) {

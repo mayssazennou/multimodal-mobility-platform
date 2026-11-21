@@ -2,8 +2,10 @@ package ma.mobility.air_bridge.controller;
 
 
 import ma.mobility.air_bridge.dto.ApiError;
+import ma.mobility.air_bridge.exception.IdempotencyConflictException;
 import ma.mobility.air_bridge.exception.OperatorRefusedException;
 import ma.mobility.air_bridge.exception.OperatorUnavailableException;
+import ma.mobility.air_bridge.exception.RequestInProgressException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
@@ -45,5 +47,14 @@ public class GlobalExceptionHandler {
     private String correlationId() {
         String traceId = MDC.get("traceId");
         return traceId != null ? traceId : UUID.randomUUID().toString();
+    }
+    @ExceptionHandler(IdempotencyConflictException.class)
+    public ResponseEntity<ApiError> handleIdemConflict(IdempotencyConflictException e) {
+        return build(HttpStatus.UNPROCESSABLE_ENTITY, "IDEMPOTENCY_KEY_REUSED", e);
+    }
+
+    @ExceptionHandler(RequestInProgressException.class)
+    public ResponseEntity<ApiError> handleInProgress(RequestInProgressException e) {
+        return build(HttpStatus.CONFLICT, "REQUEST_IN_PROGRESS", e);
     }
 }
