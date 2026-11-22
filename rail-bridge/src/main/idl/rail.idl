@@ -1,0 +1,57 @@
+// =====================================================================
+//  Opérateur ferroviaire — contrat CORBA (IDL)
+//  Projet : Plateforme de mobilité multimodale (starter kit)
+//  Encadrement : Pr. Mahmoud NASSAR
+//
+//  CE CONTRAT FAIT FOI. Il ne doit PAS être modifié par les étudiants.
+//  L'implémentation du serveur est volontairement opaque : vous ne
+//  disposez que de cette interface pour construire votre bridge.
+//
+//  Cycle de réservation (support de la saga) :
+//     search  -> hold  -> confirm      (chemin nominal)
+//                    \-> cancel         (compensation / libération)
+// =====================================================================
+
+module mobility {
+  module rail {
+
+    // Un trajet ferroviaire proposé par l'opérateur.
+    struct Trip {
+      string tripId;          // identifiant unique du trajet
+      string origin;          // ville de départ   (ex: "Casablanca")
+      string destination;     // ville d'arrivée   (ex: "Rabat")
+      string departure;       // date-heure ISO-8601 (ex: "2026-11-15T07:30:00")
+      string arrival;         // date-heure ISO-8601
+      long   priceMinor;      // prix en centimes de MAD (ex: 8000 = 80,00 MAD)
+      long   seatsAvailable;  // places encore disponibles
+    };
+
+    typedef sequence<Trip> TripList;
+
+    // Levée lorsqu'une opération ne peut aboutir
+    // (trajet inconnu, plus de place, maintien expiré, etc.).
+    exception NotAvailable { string reason; };
+
+    interface RailBooking {
+
+      // Recherche des trajets pour un couple origine/destination à une date.
+      //   date : format "AAAA-MM-JJ" (ex: "2026-11-15")
+      // Renvoie une liste éventuellement vide.
+      TripList search(in string origin, in string destination, in string date);
+
+      // Réserve temporairement 'seats' places sur 'tripId'.
+      // Renvoie un holdId. Le maintien expire après un délai (voir doc).
+      string hold(in string tripId, in long seats) raises (NotAvailable);
+
+      // Confirme un maintien et renvoie une référence de réservation ferme.
+      string confirm(in string holdId) raises (NotAvailable);
+
+      // Compensation, IDEMPOTENTE. Accepte :
+      //   - un holdId      -> libère le maintien non confirmé
+      //   - un bookingRef  -> annule la réservation ferme
+      // Un identifiant inconnu ou déjà annulé n'est pas une erreur.
+      void cancel(in string bookingRef);
+    };
+
+  };
+};
