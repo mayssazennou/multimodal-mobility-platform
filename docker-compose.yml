@@ -13,6 +13,8 @@ services:
   # --- Opérateur ferroviaire : serveur CORBA (JacORB) ---
   rail:
     build: ./rail-operator-corba
+    depends_on:
+      - redis
     image: mobilite/rail-operator-corba:1.0.0
     container_name: rail-operator-corba
     environment:
@@ -32,8 +34,37 @@ services:
     image: mobilite/air-partner-soap:1.0.0
     container_name: air-partner-soap
     ports:
-      - "8081:8080"          # WSDL: http://localhost:8081/ws/air.wsdl
+      - "8081:8080"     # WSDL: http://localhost:8081/ws/air.wsdl
+
+
+  air-bridge:
+    build: ./air-bridge
+    container_name: air-bridge
+    ports:
+      - "8080:8080"
+    environment:
+      AIR_SOAP_URL: http://air:8080/ws
+      REDIS_HOST: redis
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+    depends_on:
+      - air
+      - redis
+
+  redis:
+    image: redis:7-alpine
+    container_name: redis
+    restart: unless-stopped
+
+    ports:
+      - "6379:6379"
+    # Active la persistance AOF et sécurise avec un mot de passe
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD}
+    volumes:
+      - redis_data:/data
 
 networks:
   default:
     name: mobilite-net
+
+volumes:
+  redis_data:

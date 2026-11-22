@@ -34,3 +34,6 @@ build/
 .env
 hold.json
 cancel.json
+.idea/
+*.json
+.git

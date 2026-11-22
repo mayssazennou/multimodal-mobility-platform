@@ -12,3 +12,6 @@ ior/*.ior
 .settings/
 .project
 .classpath
+
+.env
+
