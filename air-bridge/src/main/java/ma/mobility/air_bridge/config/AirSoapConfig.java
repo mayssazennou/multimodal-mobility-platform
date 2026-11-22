@@ -27,9 +27,20 @@ public class AirSoapConfig {
         client.setMarshaller(marshaller);  // Java -> XML
         client.setUnmarshaller(marshaller); // XML -> Java
 
+// --- Timeouts : empêchent un partenaire lent ou bloqué de bloquer le bridge ---
+// Sans timeout, l'appel SOAP attendrait indéfiniment et aucune exception ne serait levée
+// (donc pas de 503, et un futur circuit breaker ne compterait jamais l'échec).
         HttpUrlConnectionMessageSender sender = new HttpUrlConnectionMessageSender();
+
+// Temps maximal pour établir la connexion TCP avec le partenaire (service éteint, réseau coupé)
         sender.setConnectionTimeout(Duration.ofSeconds(2));
+
+// Temps maximal d'attente de la réponse une fois la requête envoyée (partenaire figé ou très lent)
+// Attention : sur hold/confirm, un dépassement laisse un doute (le partenaire a peut-être traité
+// la requête). Ce cas est couvert par l'idempotence (Idempotency-Key + Redis).
         sender.setReadTimeout(Duration.ofSeconds(3));
+
+// Dépassement => WebServiceIOException => OperatorUnavailableException (HTTP 503)
         client.setMessageSender(sender);
         return client;
 

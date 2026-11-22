@@ -1,7 +1,10 @@
 package ma.mobility.air_bridge.service;
 
+import io.github.resilience4j.circuitbreaker.CallNotPermittedException;
+import io.github.resilience4j.circuitbreaker.CircuitBreaker;
 import lombok.RequiredArgsConstructor;
 import ma.mobility.air_bridge.client.AirSoapClient;
+import ma.mobility.air_bridge.config.ResilienceConfig;
 import ma.mobility.air_bridge.exception.IdempotencyConflictException;
 import ma.mobility.air_bridge.exception.OperatorRefusedException;
 import ma.mobility.air_bridge.exception.OperatorUnavailableException;
@@ -43,6 +46,7 @@ public class AirService {
 
     private final FlightMapper flightMapper;
     private final AirSoapClient airSoapClient;
+    private final CircuitBreaker circuitBreaker;
 
     // ---------------------------------------------------------------- search
     public List<Offer> searchOffers(String origin, String destination, String date) {
@@ -239,17 +243,26 @@ public class AirService {
     /**
      * Point unique de traduction des exceptions Spring WS en exceptions canoniques.
      * Aucune exception Spring WS ne sort de cette classe.
+     * Le circuit breaker enveloppe l'appel ET la traduction : il voit donc les exceptions
+     * canoniques (OperatorUnavailableException comptée, OperatorRefusedException ignorée).
      */
     private <T> T callPartner(Supplier<T> call, String refusedMessage) {
         try {
-            return call.get();
-        } catch (SoapFaultClientException e) {
-            throw new OperatorRefusedException(refusedMessage, e);
-        } catch (WebServiceIOException e) {
-            throw new OperatorUnavailableException("Opérateur aérien injoignable", e);
-        } catch (WebServiceClientException e) {
-            // Filet de sécurité : autre erreur côté client SOAP (ex. réponse non conforme)
-            throw new OperatorUnavailableException("Réponse invalide de l'opérateur aérien", e);
+            return circuitBreaker.executeSupplier(() -> {
+                try {
+                    return call.get();
+                } catch (SoapFaultClientException e) {
+                    throw new OperatorRefusedException(refusedMessage, e);
+                } catch (WebServiceIOException e) {
+                    throw new OperatorUnavailableException("Opérateur aérien injoignable", e);
+                } catch (WebServiceClientException e) {
+                    // Filet de sécurité : autre erreur côté client SOAP (ex. réponse non conforme)
+                    throw new OperatorUnavailableException("Réponse invalide de l'opérateur aérien", e);
+                }
+            });
+        } catch (CallNotPermittedException e) {
+            // Circuit ouvert : l'appel au partenaire n'a pas été tenté (échec immédiat, 503)
+            throw new OperatorUnavailableException("Circuit ouvert : opérateur aérien indisponible", e);
         }
     }
 }
