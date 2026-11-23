@@ -39,7 +39,7 @@ services:
     build: ./air-bridge
     container_name: air-bridge
     ports:
-      - "8080:8080"
+      - "8085:8085"
     environment:
       AIR_SOAP_URL: http://air:8080/ws
       REDIS_HOST: redis
@@ -73,9 +73,27 @@ services:
       - "8082:8080"
     mem_limit: 400m
 
+  saga-db:
+    image: postgres:16-alpine
+    container_name: saga-db
+    environment:
+      POSTGRES_DB: sagadb
+      POSTGRES_USER: saga
+      POSTGRES_PASSWORD: ${SAGA_DB_PASSWORD}
+    ports:
+      - "5433:5432"          # 5433 côté Windows pour éviter un conflit avec un Postgres local
+    volumes:
+      - saga-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U saga -d sagadb" ]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
 networks:
   default:
     name: mobilite-net
 
 volumes:
   redis_data:
+  saga-db-data:
