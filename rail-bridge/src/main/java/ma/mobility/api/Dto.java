@@ -74,6 +74,10 @@ public final class Dto {
         }
     }
 
+    public static class CancelRequest {
+        public String reference;
+    }
+    
     public static class ApiError {
         public final String code;
         public final String message;

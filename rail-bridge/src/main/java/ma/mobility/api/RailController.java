@@ -6,7 +6,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-/** Contrat REST commun v1 : GET /offers, POST /holds, POST /bookings, DELETE /bookings/{ref}. */
+/** Contrat REST commun v1 : GET /offers, POST /holds, POST /bookings, POST /cancellations. */
 @RestController
 @RequestMapping("/v1")
 public class RailController {
@@ -47,9 +47,9 @@ public class RailController {
     }
 
     /** Compensation. Accepte un holdId ou un bookingId ; répond toujours 204, même si déjà annulé ou inconnu. */
-    @DeleteMapping("/bookings/{ref:.+}")
+    @PostMapping("/cancellations")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void cancel(@PathVariable("ref") String ref) {
-        gateway.cancel(Ids.raw(ref));
+    public void cancel(@RequestBody Dto.CancelRequest request) {
+        gateway.cancel(Ids.raw(request.reference));
     }
 }
