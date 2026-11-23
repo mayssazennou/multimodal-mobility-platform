@@ -13,8 +13,6 @@ services:
   # --- Opérateur ferroviaire : serveur CORBA (JacORB) ---
   rail:
     build: ./rail-operator-corba
-    depends_on:
-      - redis
     image: mobilite/rail-operator-corba:1.0.0
     container_name: rail-operator-corba
     environment:
@@ -61,6 +59,19 @@ services:
     command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD}
     volumes:
       - redis_data:/data
+    
+  rail-bridge:
+    build: ./rail-bridge
+    depends_on:
+      - rail
+    environment:
+      RAIL_IOR_FILE: /ior/RailBooking.ior
+      JAVA_OPTS: "-Xmx256m"
+    volumes:
+      - ./ior:/ior:ro
+    ports:
+      - "8082:8080"
+    mem_limit: 400m
 
 networks:
   default:
