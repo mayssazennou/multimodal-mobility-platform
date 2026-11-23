@@ -90,6 +90,19 @@ services:
       timeout: 3s
       retries: 10
 
+  saga-service:
+    build: ./saga-service
+    ports:
+      - "8084:8084"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://saga-db:5432/sagadb
+      SPRING_DATASOURCE_USERNAME: saga
+      SPRING_DATASOURCE_PASSWORD: ${SAGA_DB_PASSWORD}
+      SERVER_PORT: 8084
+    depends_on:
+      saga-db:
+        condition: service_healthy
+
 networks:
   default:
     name: mobilite-net
