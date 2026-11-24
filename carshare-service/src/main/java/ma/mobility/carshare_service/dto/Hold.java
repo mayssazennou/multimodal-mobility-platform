@@ -1,4 +1,6 @@
 package ma.mobility.carshare_service.dto;
 
-public record Hold() {
-}
+import java.time.Instant;
+
+public record Hold(String holdId, String offerId, Instant expiresAt) {}
+
