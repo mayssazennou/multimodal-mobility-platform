@@ -27,8 +27,8 @@ req POST "$BASE/bookings" "{\"holdId\":\"$HOLD\"}"
 BOOKING=$(field bookingId)
 
 echo "== cancel (booking), puis rejoué : 204 attendu les deux fois =="
-req DELETE "$BASE/bookings/$BOOKING"
-req DELETE "$BASE/bookings/$BOOKING"
+req POST "$BASE/cancellations" "{\"reference\":\"$BOOKING\"}"
+req POST "$BASE/cancellations" "{\"reference\":\"$BOOKING\"}"
 
 echo "== échec : trop de places (409 NOT_AVAILABLE attendu) =="
 req POST "$BASE/holds" "{\"offerId\":\"$OFFER\",\"seats\":1000}"
@@ -42,4 +42,4 @@ A=$(field holdId)
 req POST "$BASE/holds" "{\"offerId\":\"$OFFER\",\"seats\":1}" 'Idempotency-Key: demo-1'
 B=$(field holdId)
 [ "$A" = "$B" ] && echo "  OK : $A" || echo "  KO : $A != $B"
-req DELETE "$BASE/bookings/$A"
+req POST "$BASE/cancellations" "{\"reference\":\"$A\"}"

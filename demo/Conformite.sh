@@ -70,8 +70,8 @@ run() {  # run <MODE> <base> <origine> <destination> <date>
   local booking; booking=$(field bookingId)
   expect_eq "confirm : status CONFIRMED" "$(field status)" "CONFIRMED"
 
-  call DELETE "$base/bookings/$booking"; expect_code "cancel" 204
-  call DELETE "$base/bookings/$booking"; expect_code "cancel rejoué (idempotent)" 204
+  call POST "$base/cancellations" "{\"reference\":\"$booking\"}"; expect_code "cancel" 204
+  call POST "$base/cancellations" "{\"reference\":\"$booking\"}"; expect_code "cancel rejoué (idempotent)" 204
   call GET "$search"
   expect_eq "le cancel restitue les places" "$(num seatsAvailable)" "$seats0"
 
@@ -84,7 +84,7 @@ run() {  # run <MODE> <base> <origine> <destination> <date>
   call POST "$base/holds" "{\"offerId\":\"$offer\",\"seats\":0}"
   expect_code "hold de 0 place" 400
   expect_eq "  code INVALID_REQUEST" "$(field code)" "INVALID_REQUEST"
-  call DELETE "$base/bookings/$mode:inconnu"
+  call POST "$base/cancellations" "{\"reference\":\"$mode:inconnu\"}"
   expect_code "cancel d'une référence inconnue" 204
 
   echo "  -- idempotence et annulation d'un maintien"
@@ -93,7 +93,7 @@ run() {  # run <MODE> <base> <origine> <destination> <date>
   call POST "$base/holds" "{\"offerId\":\"$offer\",\"seats\":1}"; local h2; h2=$(field holdId)
   EXTRA=""
   expect_eq "même clé, même holdId (pas de second maintien)" "$h2" "$h1"
-  call DELETE "$base/bookings/$h1"; expect_code "cancel d'un holdId (compensation avant confirm)" 204
+  call POST "$base/cancellations" "{\"reference\":\"$h1\"}"; expect_code "cancel d'un holdId (compensation avant confirm)" 204
   call GET "$search"
   expect_eq "places restituées après annulation du maintien" "$(num seatsAvailable)" "$seats0"
 }
