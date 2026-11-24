@@ -9,7 +9,7 @@ public record Hold(
         String providerHoldId,
         String offerId,
         int quantity,
-        HoldStatus status;
-        Instant createdAt
-        Instant expiresAt;) {
+        HoldStatus status,
+        Instant createdAt,
+        Instant expiresAt) {
 }
