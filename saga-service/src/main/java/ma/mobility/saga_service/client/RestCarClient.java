@@ -11,6 +11,6 @@ public class RestCarClient extends ma.mobility.saga.client.RestPartnerClient {
                 "/v1/holds",
                 "/v1/holds/{holdId}/confirm",
                 "/v1/cancellations",
-                "vehicleId"));
+                "offerId"));
     }
 }
