@@ -103,6 +103,34 @@ services:
       saga-db:
         condition: service_healthy
 
+  carshare-db:
+    image: postgres:16-alpine
+    container_name: carshare-db
+    environment:
+      POSTGRES_DB: carsharedb
+      POSTGRES_USER: carshare
+      POSTGRES_PASSWORD: ${CARSHARE_DB_PASSWORD}
+    ports:
+      - "5435:5434"          # 5435 côté Windows pour éviter un conflit avec un Postgres local
+    volumes:
+      - carshare-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U saga -d sagadb" ]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  carshare-service:
+    build: ./carshare-service
+    depends_on:
+      carshare-db:
+        condition: service_healthy
+    environment:
+      DB_URL: jdbc:postgresql://carshare-db:5434/carsharedb
+      DB_USER: carshare
+      DB_PASSWORD: ${CARSHARE_DB_PASSWORD}
+    ports: [ "8086:8086" ]
+
 networks:
   default:
     name: mobilite-net
@@ -110,3 +138,4 @@ networks:
 volumes:
   redis_data:
   saga-db-data:
+  carshare-db-data:
