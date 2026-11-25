@@ -111,11 +111,11 @@ services:
       POSTGRES_USER: carshare
       POSTGRES_PASSWORD: ${CARSHARE_DB_PASSWORD}
     ports:
-      - "5435:5434"          # 5435 côté Windows pour éviter un conflit avec un Postgres local
+      - "5435:5432"          # 5435 côté Windows pour éviter un conflit avec un Postgres local
     volumes:
       - carshare-db-data:/var/lib/postgresql/data
     healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U saga -d sagadb" ]
+      test: [ "CMD-SHELL", "pg_isready -U carshare -d carsharedb" ]
       interval: 5s
       timeout: 3s
       retries: 10
@@ -131,6 +131,24 @@ services:
       DB_PASSWORD: ${CARSHARE_DB_PASSWORD}
     ports: [ "8086:8086" ]
 
+  booking-db:
+    image: postgres:16-alpine
+    container_name: booking-db
+    environment:
+      POSTGRES_DB: bookingdb
+      POSTGRES_USER: booking
+      POSTGRES_PASSWORD: ${BOOKING_DB_PASSWORD}
+    ports:
+      - "5436:5432"          # 5436côté Windows pour éviter un conflit avec un Postgres local
+    volumes:
+      - booking-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U booking -d bookingdb" ]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+
 networks:
   default:
     name: mobilite-net
@@ -139,3 +157,4 @@ volumes:
   redis_data:
   saga-db-data:
   carshare-db-data:
+  booking-db-data:
