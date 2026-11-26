@@ -28,7 +28,7 @@ Contrainte forte : `docker compose up` doit démarrer toute la plateforme, y com
   - Chaque propriétaire ajoute son bloc dans le compose sans toucher à celui de l'autre (pas de fichier partagé).
   - C'est l'approche d'un vrai déploiement.
 - Limites :
-  - Plus de mémoire : chaque PostgreSQL en consomme même au repos (valeur à mesurer avec `docker stats`, plafonnée par `mem_limit`).
+  - Plus de mémoire : chaque PostgreSQL en consomme même au repos (mais reste peu coûteux; `docker stats` montre que carshare-db et saga-db consomment environ 36 Mio au repos chacun avec un plafond fixé par `mem_limit`).
   - Plus de conteneurs à démarrer, donc un risque plus grand d'échec sur une petite machine.
 
 ## Ce qui ne change pas
