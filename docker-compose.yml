@@ -73,6 +73,40 @@ services:
       - "8082:8080"
     mem_limit: 400m
 
+  carshare-db:
+    image: postgres:16-alpine
+    container_name: carshare-db
+    command: ["postgres", "-c", "shared_buffers=32MB", "-c", "max_connections=20"]
+    environment:
+      POSTGRES_DB: carshare
+      POSTGRES_USER: carshare
+      POSTGRES_PASSWORD: ${CARSHARE_DB_PASSWORD}
+    volumes:
+      - carshare-pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U carshare -d carshare"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    mem_limit: 192m
+
+  carshare-service:
+    build:
+      context: .
+      dockerfile: carshare-service/Dockerfile
+    container_name: carshare-service
+    environment:
+      JAVA_OPTS: "-Xmx192m"
+      SPRING_DATASOURCE_URL: jdbc:postgresql://carshare-db:5432/carshare
+      SPRING_DATASOURCE_USERNAME: carshare
+      SPRING_DATASOURCE_PASSWORD: ${CARSHARE_DB_PASSWORD}
+    depends_on:
+      carshare-db:
+        condition: service_healthy
+    ports:
+      - "8086:8080"
+    mem_limit: 384m
+
   saga-db:
     image: postgres:16-alpine
     container_name: saga-db
@@ -103,39 +137,11 @@ services:
       saga-db:
         condition: service_healthy
 
-  carshare-db:
-    image: postgres:16-alpine
-    container_name: carshare-db
-    environment:
-      POSTGRES_DB: carsharedb
-      POSTGRES_USER: carshare
-      POSTGRES_PASSWORD: ${CARSHARE_DB_PASSWORD}
-    ports:
-      - "5435:5434"          # 5435 côté Windows pour éviter un conflit avec un Postgres local
-    volumes:
-      - carshare-db-data:/var/lib/postgresql/data
-    healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U saga -d sagadb" ]
-      interval: 5s
-      timeout: 3s
-      retries: 10
-
-  carshare-service:
-    build: ./carshare-service
-    depends_on:
-      carshare-db:
-        condition: service_healthy
-    environment:
-      DB_URL: jdbc:postgresql://carshare-db:5434/carsharedb
-      DB_USER: carshare
-      DB_PASSWORD: ${CARSHARE_DB_PASSWORD}
-    ports: [ "8086:8086" ]
-
 networks:
   default:
     name: mobilite-net
 
 volumes:
   redis_data:
+  carshare-pgdata:
   saga-db-data:
-  carshare-db-data:
