@@ -1,8 +1,8 @@
-# ADR 0002 — Comment les services utilisent le modèle canonique
+# ADR 007 — Comment les services utilisent le modèle canonique
 
-- **Statut** : accepté
+- **Statut** : proposé, adopté pour carshare-service
 - **Date** : 24/11/2026
-- **Concerne** : les service `carshare-service`, `api-gateway`...
+- **Concerne** : les services `carshare-service`, `api-gateway`, `air-bridge` et tout autre service utilisant le modèle canonique
 
 ## Contexte
 

@@ -39,7 +39,7 @@ services:
     build: ./air-bridge
     container_name: air-bridge
     ports:
-      - "8080:8080"
+      - "8085:8085"
     environment:
       AIR_SOAP_URL: http://air:8080/ws
       REDIS_HOST: redis
@@ -74,13 +74,13 @@ services:
     mem_limit: 400m
 
   carshare-db:
-    image: postgres:17-alpine
+    image: postgres:16-alpine
     container_name: carshare-db
     command: ["postgres", "-c", "shared_buffers=32MB", "-c", "max_connections=20"]
     environment:
       POSTGRES_DB: carshare
       POSTGRES_USER: carshare
-      POSTGRES_PASSWORD: carshare
+      POSTGRES_PASSWORD: ${CARSHARE_DB_PASSWORD}
     volumes:
       - carshare-pgdata:/var/lib/postgresql/data
     healthcheck:
@@ -99,13 +99,43 @@ services:
       JAVA_OPTS: "-Xmx192m"
       SPRING_DATASOURCE_URL: jdbc:postgresql://carshare-db:5432/carshare
       SPRING_DATASOURCE_USERNAME: carshare
-      SPRING_DATASOURCE_PASSWORD: carshare
+      SPRING_DATASOURCE_PASSWORD: ${CARSHARE_DB_PASSWORD}
     depends_on:
       carshare-db:
         condition: service_healthy
     ports:
-      - "8084:8080"
+      - "8086:8080"
     mem_limit: 384m
+
+  saga-db:
+    image: postgres:16-alpine
+    container_name: saga-db
+    environment:
+      POSTGRES_DB: sagadb
+      POSTGRES_USER: saga
+      POSTGRES_PASSWORD: ${SAGA_DB_PASSWORD}
+    ports:
+      - "5433:5432"          # 5433 côté Windows pour éviter un conflit avec un Postgres local
+    volumes:
+      - saga-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U saga -d sagadb" ]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  saga-service:
+    build: ./saga-service
+    ports:
+      - "8084:8084"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://saga-db:5432/sagadb
+      SPRING_DATASOURCE_USERNAME: saga
+      SPRING_DATASOURCE_PASSWORD: ${SAGA_DB_PASSWORD}
+      SERVER_PORT: 8084
+    depends_on:
+      saga-db:
+        condition: service_healthy
 
 networks:
   default:
@@ -114,3 +144,4 @@ networks:
 volumes:
   redis_data:
   carshare-pgdata:
+  saga-db-data:

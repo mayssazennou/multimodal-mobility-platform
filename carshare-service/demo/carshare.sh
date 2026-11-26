@@ -2,7 +2,7 @@
 # Scénario de validation du carshare-service (même cycle que demo/rail-bridge.sh).
 # Prérequis : le service tourne (BASE par défaut : localhost:8084).
 set -u
-BASE=${BASE:-http://localhost:8084/v1}
+BASE=${BASE:-http://localhost:8086/v1}
 BODY=/tmp/carshare-last.json
 
 req() {  # req <méthode> <url> [json] [en-têtes...]

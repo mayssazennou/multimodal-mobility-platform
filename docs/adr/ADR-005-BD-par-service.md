@@ -1,4 +1,4 @@
-# ADR 0001 — Une base PostgreSQL par microservice
+# ADR 005 — Une base PostgreSQL par microservice
 
 - **Statut** : adopté (provisoire : à confirmer avec une mesure de la mémoire)
 - **Date** : 24/11/2026
