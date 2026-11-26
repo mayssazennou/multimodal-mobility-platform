@@ -40,11 +40,29 @@ Gateway — est à construire par vous.
 
 ## Démarrage
 
+### 1. Préparer les mots de passe
+
+À la racine du projet, créez votre fichier `.env` à partir du modèle :
+
+```bash
+cp .env.example .env
+```
+
+Remplacez ensuite  chaque valeur `CHANGEME` du fichier `.env` par un mot de passe
+de votre choix, en gardant les mêmes noms de variables et le même format que
+dans `.env.example`.
+
+### 2. Démarrer les services
+
 ```bash
 docker compose up --build
 ```
 
-Puis, dans un autre terminal :
+Compose démarre les systèmes fournis et les services de la plateforme,
+notamment Kafka en mode KRaft et Jaeger. L’interface Jaeger est disponible sur
+<http://localhost:16686>.
+
+Dans un autre terminal, vérifiez le démarrage des systèmes fournis :
 
 ```bash
 ./verify.sh
@@ -54,6 +72,9 @@ Vous devez obtenir :
 
 - `air`  → le WSDL répond sur <http://localhost:8081/ws/air.wsdl> ;
 - `rail` → le fichier `ior/RailBooking.ior` est créé et le port `1050` écoute.
+
+Pour arrêter les conteneurs, utilisez `Ctrl+C` dans le terminal Compose, ou
+exécutez `docker compose down` dans un autre terminal.
 
 Détails et dépannage : **`docs/01-demarrage.md`**.
 
