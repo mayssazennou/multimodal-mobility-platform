@@ -99,9 +99,20 @@ services:
       SPRING_DATASOURCE_USERNAME: saga
       SPRING_DATASOURCE_PASSWORD: ${SAGA_DB_PASSWORD}
       SERVER_PORT: 8084
+<<<<<<< HEAD
     depends_on:
       saga-db:
         condition: service_healthy
+=======
+      JAVA_TOOL_OPTIONS: "-Xmx256m"
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+    depends_on:
+      saga-db:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    mem_limit: 448m
+>>>>>>> 6206f6b (feat(saga): outbox, travelerId, evenement BOOKING_STARTED)
 
   carshare-db:
     image: postgres:16-alpine

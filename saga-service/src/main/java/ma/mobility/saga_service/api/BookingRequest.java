@@ -9,7 +9,9 @@ public record BookingRequest(
         @NotBlank String railOfferId,
         @NotBlank String airOfferId,
         @NotBlank String carVehicleId,
-        @Min(1) int seats) {
+        @Min(1) int seats,
+        @NotBlank String travelerId
+        ) {
 
     public String resourceFor(StepType type) {
         return switch (type) {

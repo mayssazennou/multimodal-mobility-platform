@@ -1,5 +1,6 @@
 package ma.mobility.saga_service.orchestrator;
 
+import ma.mobility.canonical.BookingEvent;
 import ma.mobility.saga_service.api.BookingRequest;
 import ma.mobility.saga_service.client.PartnerClient;
 import ma.mobility.saga_service.domain.SagaState;
@@ -10,11 +11,14 @@ import ma.mobility.saga_service.entities.SagaEntity;
 import ma.mobility.saga_service.entities.SagaStepEntity;
 import ma.mobility.saga_service.exception.PartnerRejectedException;
 import ma.mobility.saga_service.exception.PartnerUncertainException;
+import ma.mobility.saga_service.outbox.OutboxService;
 import ma.mobility.saga_service.repository.SagaRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.support.TransactionTemplate;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -29,12 +33,17 @@ public class BookingSagaOrchestrator {
 
     private final SagaRepository repo;
     private final List<PartnerClient> partners;   // ordre : RAIL, AIR, CAR
+    private final OutboxService outbox;
+    private final TransactionTemplate tx;
 
-    public BookingSagaOrchestrator(SagaRepository repo, List<PartnerClient> partners) {
+    public BookingSagaOrchestrator(SagaRepository repo, List<PartnerClient> partners,
+                                   OutboxService outbox, PlatformTransactionManager tm) {
         this.repo = repo;
         this.partners = partners.stream()
                 .sorted(Comparator.comparing(PartnerClient::type))
                 .toList();
+        this.outbox = outbox;
+        this.tx = new TransactionTemplate(tm);
     }
 
     // ------------------------------------------------------------------
@@ -49,9 +58,15 @@ public class BookingSagaOrchestrator {
 
         SagaEntity saga;
         try {
-            saga = repo.save(new SagaEntity(idempotencyKey));
+            // Création de la saga + événement STARTED dans UNE seule transaction
+            saga = tx.execute(status -> {
+                SagaEntity s = repo.save(new SagaEntity(idempotencyKey));
+                outbox.record(BookingEvent.started(s.getId().toString(), req.travelerId()));
+                return s;
+            });
         } catch (DataIntegrityViolationException e) {
             // deux requêtes simultanées : la contrainte UNIQUE a départagé
+            // (la transaction est annulée, événement compris)
             return repo.findByIdempotencyKey(idempotencyKey).orElseThrow();
         }
         return run(saga, req);
