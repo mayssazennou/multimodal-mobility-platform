@@ -11,8 +11,8 @@ set -u
 
 # --- URL de base de chaque opérateur ---------------------------------------------------------
 RAIL_BASE=${RAIL_BASE:-http://localhost:8082/v1}
-AIR_BASE=${AIR_BASE:-http://localhost:8083/v1}
-CAR_BASE=${CAR_BASE:-http://localhost:8084/v1}
+AIR_BASE=${AIR_BASE:-http://localhost:8085/v1}
+CAR_BASE=${CAR_BASE:-http://localhost:8086/v1}
 
 # --- Paramètres de recherche de chaque opérateur ----------------------------------------------
 RAIL_ORIGIN=${RAIL_ORIGIN:-Casablanca}; RAIL_DESTINATION=${RAIL_DESTINATION:-Rabat};      RAIL_DATE=${RAIL_DATE:-2026-11-15}

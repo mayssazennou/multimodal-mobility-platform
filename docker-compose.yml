@@ -37,26 +37,25 @@ services:
 
   air-bridge:
     build: ./air-bridge
-    container_name: air-bridge
     ports:
       - "8085:8085"
     environment:
       AIR_SOAP_URL: http://air:8080/ws
       REDIS_HOST: redis
-      REDIS_PASSWORD: ${REDIS_PASSWORD}
+      REDIS_PASSWORD: ${REDIS_PASSWORD:?copier .env.example vers .env}
+      JAVA_TOOL_OPTIONS: "-Xmx192m"
     depends_on:
       - air
       - redis
+    mem_limit: 384m
 
   redis:
     image: redis:7-alpine
-    container_name: redis
     restart: unless-stopped
-
     ports:
       - "6379:6379"
     # Active la persistance AOF et sécurise avec un mot de passe
-    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD}
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD:?copier .env.example vers .env}
     volumes:
       - redis_data:/data
     
@@ -73,13 +72,45 @@ services:
       - "8082:8080"
     mem_limit: 400m
 
+  carshare-db:
+    image: postgres:16-alpine
+    command: ["postgres", "-c", "shared_buffers=32MB", "-c", "max_connections=20"]
+    environment:
+      POSTGRES_DB: carshare
+      POSTGRES_USER: carshare
+      POSTGRES_PASSWORD: ${CARSHARE_DB_PASSWORD:?copier .env.example vers .env}
+    volumes:
+      - carshare-pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U carshare -d carshare"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    mem_limit: 192m
+
+  carshare-service:
+    build:
+      context: .
+      dockerfile: carshare-service/Dockerfile
+    environment:
+      JAVA_OPTS: "-Xmx192m"
+      SPRING_DATASOURCE_URL: jdbc:postgresql://carshare-db:5432/carshare
+      SPRING_DATASOURCE_USERNAME: carshare
+      SPRING_DATASOURCE_PASSWORD: ${CARSHARE_DB_PASSWORD:?copier .env.example vers .env}
+    depends_on:
+      carshare-db:
+        condition: service_healthy
+    ports:
+      - "8086:8080"
+    mem_limit: 384m
+
   saga-db:
     image: postgres:16-alpine
-    container_name: saga-db
+    command: ["postgres", "-c", "shared_buffers=32MB", "-c", "max_connections=20"]
     environment:
       POSTGRES_DB: sagadb
       POSTGRES_USER: saga
-      POSTGRES_PASSWORD: ${SAGA_DB_PASSWORD}
+      POSTGRES_PASSWORD: ${SAGA_DB_PASSWORD:?copier .env.example vers .env}
     ports:
       - "5433:5432"          # 5433 côté Windows pour éviter un conflit avec un Postgres local
     volumes:
@@ -89,6 +120,7 @@ services:
       interval: 5s
       timeout: 3s
       retries: 10
+    mem_limit: 192m
 
   saga-service:
     build: ./saga-service
@@ -97,39 +129,20 @@ services:
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://saga-db:5432/sagadb
       SPRING_DATASOURCE_USERNAME: saga
-      SPRING_DATASOURCE_PASSWORD: ${SAGA_DB_PASSWORD}
+      SPRING_DATASOURCE_PASSWORD: ${SAGA_DB_PASSWORD:?copier .env.example vers .env}
       SERVER_PORT: 8084
+      JAVA_TOOL_OPTIONS: "-Xmx256m"
     depends_on:
       saga-db:
         condition: service_healthy
+    mem_limit: 448m
 
-  carshare-db:
-    image: postgres:16-alpine
-    container_name: carshare-db
-    environment:
-      POSTGRES_DB: carsharedb
-      POSTGRES_USER: carshare
-      POSTGRES_PASSWORD: ${CARSHARE_DB_PASSWORD}
+  jaeger:
+    image: jaegertracing/jaeger:2.23.0
     ports:
-      - "5435:5432"          # 5435 côté Windows pour éviter un conflit avec un Postgres local
-    volumes:
-      - carshare-db-data:/var/lib/postgresql/data
-    healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U carshare -d carsharedb" ]
-      interval: 5s
-      timeout: 3s
-      retries: 10
-
-  carshare-service:
-    build: ./carshare-service
-    depends_on:
-      carshare-db:
-        condition: service_healthy
-    environment:
-      DB_URL: jdbc:postgresql://carshare-db:5434/carsharedb
-      DB_USER: carshare
-      DB_PASSWORD: ${CARSHARE_DB_PASSWORD}
-    ports: [ "8086:8086" ]
+      - "16686:16686"      # interface web : http://localhost:16686
+    # OTLP reste interne : les services enverront leurs traces vers http://jaeger:4318
+    mem_limit: 256m
 
   booking-db:
     image: postgres:16-alpine
@@ -196,5 +209,5 @@ networks:
 volumes:
   redis_data:
   saga-db-data:
-  carshare-db-data:
   booking-db-data:
+  carshare-pgdata:
